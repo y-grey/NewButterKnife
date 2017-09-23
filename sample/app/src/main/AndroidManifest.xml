@@ -23,7 +23,6 @@
       tools:ignore="MissingApplicationIcon,UnusedAttribute">
 
     <activity
-        android:label="@string/app_name"
         android:name=".SimpleActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>

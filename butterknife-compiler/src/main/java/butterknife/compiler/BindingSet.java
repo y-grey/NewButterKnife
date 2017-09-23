@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -123,11 +122,6 @@ final class BindingSet {
         result.addMethod(createGetLayoutMethod());
         return result.build();
     }
-
-//    private boolean isFragBindLayout() {
-//        return layoutId != 0 && !isActivity;
-//    }
-
 
     private MethodSpec createBindingConstructor(int sdk) {
         MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
@@ -704,7 +698,7 @@ final class BindingSet {
         private int layoutId;
         private BindingSet parentBinding;
 
-        private final Map<Id, ViewBinding.Builder> viewIdMap = new LinkedHashMap<>();
+        private final List<ViewBinding.Builder> viewIdMap = new ArrayList<>();
         private final ImmutableList.Builder<FieldCollectionViewBinding> collectionBindings =
                 ImmutableList.builder();
         private final ImmutableList.Builder<ResourceBinding> resourceBindings = ImmutableList.builder();
@@ -754,30 +748,27 @@ final class BindingSet {
             this.parentBinding = parent;
         }
 
-        String findExistingBindingName(Id id) {
-            ViewBinding.Builder builder = viewIdMap.get(id);
-            if (builder == null) {
-                return null;
-            }
-            FieldViewBinding fieldBinding = builder.fieldBinding;
-            if (fieldBinding == null) {
-                return null;
-            }
-            return fieldBinding.getName();
-        }
+//        String findExistingBindingName(Id id) {
+//            ViewBinding.Builder builder = viewIdMap.get(id);
+//            if (builder == null) {
+//                return null;
+//            }
+//            FieldViewBinding fieldBinding = builder.fieldBinding;
+//            if (fieldBinding == null) {
+//                return null;
+//            }
+//            return fieldBinding.getName();
+//        }
 
         private ViewBinding.Builder getOrCreateViewBindings(Id id) {
-            ViewBinding.Builder viewId = viewIdMap.get(id);
-            if (viewId == null) {
-                viewId = new ViewBinding.Builder(id);
-                viewIdMap.put(id, viewId);
-            }
+            ViewBinding.Builder viewId = new ViewBinding.Builder(id);
+            viewIdMap.add(viewId);
             return viewId;
         }
 
         BindingSet build() {
             ImmutableList.Builder<ViewBinding> viewBindings = ImmutableList.builder();
-            for (ViewBinding.Builder builder : viewIdMap.values()) {
+            for (ViewBinding.Builder builder : viewIdMap) {
                 viewBindings.add(builder.build());
             }
             return new BindingSet(targetTypeName, bindingClassName, isFinal, isView, isActivity,isFragment, isDialog,

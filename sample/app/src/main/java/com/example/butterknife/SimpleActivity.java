@@ -12,6 +12,7 @@ import butterknife.OnClick;
 public class SimpleActivity extends BaseActivity {
     @BindView(R.id.title) TextView title;
     @BindView(value = R.id.text ,parentId = R.id.commonlayout1) TextView text1;
+    @BindView(value = R.id.text ,parentId = R.id.commonlayout2) TextView text2;
     @OnClick(R.id.hello)void onclick(){
         Toast.makeText(this,"点击了 ",Toast.LENGTH_SHORT).show();
     }
@@ -19,5 +20,6 @@ public class SimpleActivity extends BaseActivity {
     @Override
     protected void init() {
         text1.setText("commonlayout1");
+        text2.setText("commonlayout2");
     }
 }

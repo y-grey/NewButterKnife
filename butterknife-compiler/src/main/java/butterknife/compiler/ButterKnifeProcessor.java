@@ -503,22 +503,22 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     BindingSet.Builder builder = builderMap.get(enclosingElement);
     QualifiedId qualifiedId = elementToQualifiedId(element, id);
     if (builder != null) {
-      String existingBindingName = builder.findExistingBindingName(getId(qualifiedId));
-      if (existingBindingName != null) {
-        error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
-            BindView.class.getSimpleName(), id, existingBindingName,
-            enclosingElement.getQualifiedName(), element.getSimpleName());
-        return;
-      }
+//      String existingBindingName = builder.findExistingBindingName(getId(qualifiedId));
+//      if (existingBindingName != null) {
+//        error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
+//            BindView.class.getSimpleName(), id, existingBindingName,
+//            enclosingElement.getQualifiedName(), element.getSimpleName());
+//        return;
+//      }
     } else {
-      builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
+      builder = createBindingBuilder(builderMap, enclosingElement);
     }
 
     String name = simpleName.toString();
     TypeName type = TypeName.get(elementType);
     boolean required = isFieldRequired(element);
 
-    builder.addField(getId(qualifiedId), new FieldViewBinding(name, type, required,parentId));
+    builder.addField(getId(qualifiedId), new FieldViewBinding(name, type, required, parentId));
 
     // Add the type-erased version to the valid binding targets set.
     erasedTargetNames.add(enclosingElement);
@@ -1230,7 +1230,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
     return builder;
   }
-
+  private BindingSet.Builder createBindingBuilder(
+          Map<TypeElement, BindingSet.Builder> builderMap, TypeElement enclosingElement) {
+      BindingSet.Builder builder = BindingSet.newBuilder(enclosingElement);
+      builderMap.put(enclosingElement, builder);
+    return builder;
+  }
   /** Finds the parent binder type in the supplied set, if any. */
   private TypeElement findParentType(TypeElement typeElement, Set<TypeElement> parents) {
     TypeMirror type;
