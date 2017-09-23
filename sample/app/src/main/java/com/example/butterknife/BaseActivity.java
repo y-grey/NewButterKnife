@@ -23,7 +23,7 @@ public abstract class BaseActivity extends FragmentActivity {
     public void addFragment(Fragment fragment) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.addToBackStack(null);
-        ft.add(R.id.slide_fragment, fragment);
+        ft.add(android.R.id.content, fragment);
         ft.commitAllowingStateLoss();
     }
 }

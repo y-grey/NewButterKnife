@@ -1,7 +1,6 @@
 package com.example.butterknife;
 
 import android.widget.TextView;
-import android.widget.Toast;
 
 import butterknife.BindLayout;
 import butterknife.BindView;
@@ -14,11 +13,12 @@ public class SimpleActivity extends BaseActivity {
     @BindView(value = R.id.text ,parentId = R.id.commonlayout1) TextView text1;
     @BindView(value = R.id.text ,parentId = R.id.commonlayout2) TextView text2;
     @OnClick(R.id.hello)void onclick(){
-        Toast.makeText(this,"点击了 ",Toast.LENGTH_SHORT).show();
+        addFragment(new SimpleFragment());
     }
 
     @Override
     protected void init() {
+        title.setText("SimpleActivity");
         text1.setText("commonlayout1");
         text2.setText("commonlayout2");
     }
