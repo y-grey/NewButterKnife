@@ -82,23 +82,21 @@ public final class Utils {
     View view = source.findViewById(id);
     return castView(view, id, who, cls);
   }
-  /**
-   * change by _yph because we need view even it is null
-   * */
+
   public static View findRequiredView(View source, @IdRes int id, String who) {
     View view = source.findViewById(id);
-    if (who.contains("method") && view == null) {
-      String name = getResourceEntryName(source, id);
-      throw new IllegalStateException("Required view '"
-              + name
-              + "' with ID "
-              + id
-              + " for "
-              + who
-              + " was not found. If this view is optional add '@Nullable' (fields) or '@Optional'"
-              + " (methods) annotation.");
+    if (view != null) {
+      return view;
     }
-    return view;
+    String name = getResourceEntryName(source, id);
+    throw new IllegalStateException("Required view '"
+        + name
+        + "' with ID "
+        + id
+        + " for "
+        + who
+        + " was not found. If this view is optional add '@Nullable' (fields) or '@Optional'"
+        + " (methods) annotation.");
   }
 
   public static <T> T findRequiredViewAsType(View source, @IdRes int id, String who,

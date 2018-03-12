@@ -41,7 +41,7 @@ import java.util.Map;
  * {@linkplain #bind(View) view}, or a {@linkplain #bind(Dialog) dialog}. Alternate objects to
  * bind can be specified along with an {@linkplain #bind(Object, Activity) activity},
  * {@linkplain #bind(Object, View) view}, or
- * {@linkplain #bind(Object, android.app.Dialog) dialog}.
+ * {@linkplain #bind(Object, Dialog) dialog}.
  * <p>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
@@ -164,7 +164,7 @@ public final class ButterKnife {
     public static View bind(@NonNull Fragment target, @NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
         return (View) createFragmentBinding(target, inflater, container).getLayout();
     }
-    private static Unbinder createFragmentBinding(@NonNull Object target,LayoutInflater inflater,ViewGroup container) {
+    private static Unbinder createFragmentBinding(@NonNull Object target, LayoutInflater inflater, ViewGroup container) {
         Constructor<? extends Unbinder> constructor = findBindingConstructorForClass(target);
 
         if (constructor == null) {

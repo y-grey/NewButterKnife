@@ -26,14 +26,10 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
-import butterknife.OnTouch;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 
 import static butterknife.compiler.ButterKnifeProcessor.ACTIVITY_TYPE;
-import static butterknife.compiler.ButterKnifeProcessor.DIALOG_TYPE;
-import static butterknife.compiler.ButterKnifeProcessor.FRAGMENT_TYPE;
-import static butterknife.compiler.ButterKnifeProcessor.V4_FRAGMENT_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.isSubtypeOfType;
 import static com.google.auto.common.MoreElements.getPackage;
@@ -66,10 +62,7 @@ final class BindingSet {
     private final TypeName targetTypeName;
     private final ClassName bindingClassName;
     private final boolean isFinal;
-    private final boolean isView;
     private final boolean isActivity;
-    private final boolean isFragment;
-    private final boolean isDialog;
     private final ImmutableList<ViewBinding> viewBindings;
     private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
     private final ImmutableList<ResourceBinding> resourceBindings;
@@ -77,16 +70,13 @@ final class BindingSet {
     private int layoutId;
 
     private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-                       boolean isView, boolean isActivity,boolean isFragment, boolean isDialog, ImmutableList<ViewBinding> viewBindings,
+                       boolean isActivity, ImmutableList<ViewBinding> viewBindings,
                        ImmutableList<FieldCollectionViewBinding> collectionBindings,
                        ImmutableList<ResourceBinding> resourceBindings, BindingSet parentBinding, @LayoutRes int layoutId) {
         this.isFinal = isFinal;
         this.targetTypeName = targetTypeName;
         this.bindingClassName = bindingClassName;
-        this.isView = isView;
         this.isActivity = isActivity;
-        this.isFragment = isFragment;
-        this.isDialog = isDialog;
         this.viewBindings = viewBindings;
         this.collectionBindings = collectionBindings;
         this.resourceBindings = resourceBindings;
@@ -146,12 +136,6 @@ final class BindingSet {
             // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
             constructor.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
                     .addMember("value", "$S", "ResourceType")
-                    .build());
-        }
-
-        if (hasOnTouchMethodBindings()) {
-            constructor.addAnnotation(AnnotationSpec.builder(SUPPRESS_LINT)
-                    .addMember("value", "$S", "ClickableViewAccessibility")
                     .build());
         }
 
@@ -615,16 +599,6 @@ final class BindingSet {
         return false;
     }
 
-    private boolean hasOnTouchMethodBindings() {
-        for (ViewBinding bindings : viewBindings) {
-            if (bindings.getMethodBindings()
-                    .containsKey(OnTouch.class.getAnnotation(ListenerClass.class))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private boolean hasFieldBindings() {
         for (ViewBinding bindings : viewBindings) {
             if (bindings.getFieldBinding() != null) {
@@ -667,11 +641,7 @@ final class BindingSet {
     static Builder newBuilder(TypeElement enclosingElement) {
         TypeMirror typeMirror = enclosingElement.asType();
 
-        boolean isView = isSubtypeOfType(typeMirror, VIEW_TYPE);
         boolean isActivity = isSubtypeOfType(typeMirror, ACTIVITY_TYPE);
-        boolean isDialog = isSubtypeOfType(typeMirror, DIALOG_TYPE);
-        boolean isFragment = isSubtypeOfType(typeMirror, V4_FRAGMENT_TYPE)
-                || isSubtypeOfType(typeMirror, FRAGMENT_TYPE);
 
         TypeName targetType = TypeName.get(typeMirror);
         if (targetType instanceof ParameterizedTypeName) {
@@ -684,17 +654,14 @@ final class BindingSet {
         ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
 
         boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
-        return new Builder(targetType, bindingClassName, isFinal, isView, isActivity,isFragment, isDialog);
+        return new Builder(targetType, bindingClassName, isFinal, isActivity);
     }
 
     static final class Builder {
         private final TypeName targetTypeName;
         private final ClassName bindingClassName;
         private final boolean isFinal;
-        private final boolean isView;
         private final boolean isActivity;
-        private final boolean isFragment;
-        private final boolean isDialog;
         private int layoutId;
         private BindingSet parentBinding;
 
@@ -707,15 +674,11 @@ final class BindingSet {
             this.layoutId = layoutId;
         }
 
-        private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-                        boolean isView, boolean isActivity, boolean isFragment,boolean isDialog) {
+        private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,boolean isActivity) {
             this.targetTypeName = targetTypeName;
             this.bindingClassName = bindingClassName;
             this.isFinal = isFinal;
-            this.isView = isView;
             this.isActivity = isActivity;
-            this.isFragment = isFragment;
-            this.isDialog = isDialog;
         }
 
         void addField(Id id, FieldViewBinding binding) {
@@ -739,26 +702,9 @@ final class BindingSet {
             return true;
         }
 
-
-        void addResource(ResourceBinding binding) {
-            resourceBindings.add(binding);
-        }
-
         void setParent(BindingSet parent) {
             this.parentBinding = parent;
         }
-
-//        String findExistingBindingName(Id id) {
-//            ViewBinding.Builder builder = viewIdMap.get(id);
-//            if (builder == null) {
-//                return null;
-//            }
-//            FieldViewBinding fieldBinding = builder.fieldBinding;
-//            if (fieldBinding == null) {
-//                return null;
-//            }
-//            return fieldBinding.getName();
-//        }
 
         private ViewBinding.Builder getOrCreateViewBindings(Id id) {
             ViewBinding.Builder viewId = new ViewBinding.Builder(id);
@@ -771,7 +717,7 @@ final class BindingSet {
             for (ViewBinding.Builder builder : viewIdMap) {
                 viewBindings.add(builder.build());
             }
-            return new BindingSet(targetTypeName, bindingClassName, isFinal, isView, isActivity,isFragment, isDialog,
+            return new BindingSet(targetTypeName, bindingClassName, isFinal, isActivity,
                     viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
                     parentBinding, layoutId);
         }

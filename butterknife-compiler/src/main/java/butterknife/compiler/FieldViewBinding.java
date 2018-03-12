@@ -10,7 +10,7 @@ final class FieldViewBinding implements MemberViewBinding {
   private final boolean required;
   private final int parentId;
 
-  FieldViewBinding(String name, TypeName type, boolean required,int parentId) {
+  FieldViewBinding(String name, TypeName type, boolean required, int parentId) {
     this.name = name;
     this.type = type;
     this.required = required;

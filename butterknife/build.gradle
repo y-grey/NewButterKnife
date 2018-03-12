@@ -36,3 +36,5 @@ def getRuntimeJar() {
     throw new RuntimeException(e);
   }
 }
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

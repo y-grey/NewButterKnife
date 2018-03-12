@@ -17,23 +17,19 @@ android {
     versionName '1.0.0'
   }
 
-  lintOptions {
-    textReport true
-    textOutput 'stdout'
-  }
-
   buildTypes {
     debug {
-      minifyEnabled false
+      minifyEnabled true
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
   }
 }
 
 dependencies {
-    compile project(':butterknife-annotations')
-    compile project(':butterknife')
-    compile deps.supportCompat
-    annotationProcessor project(':butterknife-compiler')
+  compile project(':butterknife-annotations')
+  compile project(':butterknife')
+  compile deps.supportCompat
+  annotationProcessor project(':butterknife-compiler')
 }
 
 afterEvaluate {
@@ -50,6 +46,6 @@ afterEvaluate {
 
 buildscript {
   dependencies {
-    classpath 'com.jakewharton:butterknife-gradle-plugin:8.4.0'
+    classpath 'com.jakewharton:butterknife-gradle-plugin:8.8.1'
   }
 }

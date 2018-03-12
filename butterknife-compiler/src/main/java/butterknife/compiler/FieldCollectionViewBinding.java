@@ -3,6 +3,7 @@ package butterknife.compiler;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+
 import java.util.List;
 
 import static butterknife.compiler.BindingSet.UTILS;
@@ -28,7 +29,7 @@ final class FieldCollectionViewBinding {
   private final int parentId;
 
   FieldCollectionViewBinding(String name, TypeName type, Kind kind, List<Id> ids,
-                             boolean required,int parentId) {
+                             boolean required, int parentId) {
     this.name = name;
     this.type = type;
     this.kind = kind;

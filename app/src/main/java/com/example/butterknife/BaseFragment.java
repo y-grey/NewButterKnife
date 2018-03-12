@@ -7,25 +7,29 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import butterknife.BindLayout;
+import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+import static android.widget.Toast.LENGTH_SHORT;
 
 public abstract class BaseFragment extends Fragment {
-    protected View rootView;
     protected BaseActivity activity;
+
+    protected static int num;
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        rootView = ButterKnife.bind(this,inflater,container);
+        activity = (BaseActivity) getActivity();
+        View rootView = ButterKnife.bind(this,inflater,container);
+        num++;
+        init();
         return rootView;
     }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        activity = (BaseActivity)getActivity();
-        init();
-    }
-
     protected abstract void init();
 }
