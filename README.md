@@ -53,14 +53,16 @@ New Butter Knife
      @BindView(value = R.id.text ,parentId = R.id.commonlayout2) TextView text2;
  ```
 
+__Tip：如果您的项目已经用了ButterKnife,切换至NewButterKnife原来代码亦可兼容,无需改动，但仅限于上述三个注解__
 
 Download
 --------
 
 ```groovy
 dependencies {
-  compile 'com.yph:butterknife:8.5.1'
-  annotationProcessor 'com.yph:butterknife-compiler:8.5.1'
+  compile 'com.yph:newbutterknife-api:1.0.3'
+  compile 'com.yph:newbutterknife-annotation:1.0.3'
+  annotationProcessor 'com.yph:newbutterknife-compiler:1.0.3'
 }
 ```
 

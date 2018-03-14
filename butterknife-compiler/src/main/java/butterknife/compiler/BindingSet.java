@@ -3,7 +3,6 @@ package butterknife.compiler;
 import android.support.annotation.LayoutRes;
 
 import com.google.common.collect.ImmutableList;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
@@ -65,21 +64,19 @@ final class BindingSet {
     private final boolean isActivity;
     private final ImmutableList<ViewBinding> viewBindings;
     private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
-    private final ImmutableList<ResourceBinding> resourceBindings;
     private final BindingSet parentBinding;
     private int layoutId;
 
     private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
                        boolean isActivity, ImmutableList<ViewBinding> viewBindings,
                        ImmutableList<FieldCollectionViewBinding> collectionBindings,
-                       ImmutableList<ResourceBinding> resourceBindings, BindingSet parentBinding, @LayoutRes int layoutId) {
+                       BindingSet parentBinding, @LayoutRes int layoutId) {
         this.isFinal = isFinal;
         this.targetTypeName = targetTypeName;
         this.bindingClassName = bindingClassName;
         this.isActivity = isActivity;
         this.viewBindings = viewBindings;
         this.collectionBindings = collectionBindings;
-        this.resourceBindings = resourceBindings;
         this.parentBinding = parentBinding;
         this.layoutId = layoutId;
     }
@@ -106,13 +103,36 @@ final class BindingSet {
         }
         if (!isActivity) {
             result.addField(VIEW, "source", PRIVATE);
+            result.addMethod(createBindingConstructorForView());
         }
         result.addMethod(createBindingConstructor(sdk));
         result.addMethod(createBindingUnbindMethod(result));
         result.addMethod(createGetLayoutMethod());
         return result.build();
     }
-
+    private MethodSpec createBindingConstructorForView() {
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                .addAnnotation(UI_THREAD)
+                .addModifiers(PUBLIC)
+                .addParameter(targetTypeName, "target",FINAL)
+                .addParameter(VIEW, "source");
+        builder.addStatement("this.target = target");
+        builder.addCode("\n");
+        builder.addStatement("this.source = source");
+        builder.addCode("\n");
+        if (hasViewBindings()) {
+            if (hasViewLocal()) {
+                builder.addStatement("$T view", VIEW);
+            }
+            for (ViewBinding binding : viewBindings) {
+                addViewBinding(builder, binding);
+            }
+            for (FieldCollectionViewBinding binding : collectionBindings) {
+                builder.addStatement("$L", binding.render());
+            }
+        }
+        return builder.build();
+    }
     private MethodSpec createBindingConstructor(int sdk) {
         MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
                 .addAnnotation(UI_THREAD)
@@ -130,13 +150,6 @@ final class BindingSet {
         }else {
             constructor.addParameter(VIEW, "source");
             constructor.addParameter(TypeName.INT, "layoutId");
-        }
-
-        if (hasUnqualifiedResourceBindings()) {
-            // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
-            constructor.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
-                    .addMember("value", "$S", "ResourceType")
-                    .build());
         }
 
         if (parentBinding != null) {
@@ -166,8 +179,9 @@ final class BindingSet {
                 if(parentBinding == null)
                     constructor.addStatement("target.setContentView($L)", layoutId);
             }
-            else
-                constructor.addStatement("target.setContentView(layoutId)");
+            else {
+                constructor.addStatement("if(layoutId != 0)\ntarget.setContentView(layoutId)");
+            }
         }else {
             if (layoutId != 0) {
                 if(parentBinding == null)
@@ -175,8 +189,9 @@ final class BindingSet {
                 else
                     constructor.addStatement("source = (View)super.getLayout()");
             }
-            else
-                constructor.addStatement("source = inflater.inflate(layoutId, container, false)");
+            else {
+                constructor.addStatement("if(layoutId != 0)\nsource = inflater.inflate(layoutId, container, false)");
+            }
         }
         constructor.addCode("\n");
         if (hasViewBindings()) {
@@ -189,21 +204,6 @@ final class BindingSet {
             }
             for (FieldCollectionViewBinding binding : collectionBindings) {
                 constructor.addStatement("$L", binding.render());
-            }
-
-            if (!resourceBindings.isEmpty()) {
-                constructor.addCode("\n");
-            }
-        }
-        if (!resourceBindings.isEmpty()) {
-            if (constructorNeedsView()) {
-                constructor.addStatement("$T context = source.getContext()", CONTEXT);
-            }
-            if (hasResourceBindingsNeedingResource(sdk)) {
-                constructor.addStatement("$T res = context.getResources()", RESOURCES);
-            }
-            for (ResourceBinding binding : resourceBindings) {
-                constructor.addStatement("$L", binding.render(sdk));
             }
         }
         return constructor.build();
@@ -566,30 +566,6 @@ final class BindingSet {
         return !viewBindings.isEmpty() || !collectionBindings.isEmpty();
     }
 
-    /**
-     * True when this type's bindings use raw integer values instead of {@code R} references.
-     */
-    private boolean hasUnqualifiedResourceBindings() {
-        for (ResourceBinding binding : resourceBindings) {
-            if (!binding.id().qualifed) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * True when this type's bindings use Resource directly instead of Context.
-     */
-    private boolean hasResourceBindingsNeedingResource(int sdk) {
-        for (ResourceBinding binding : resourceBindings) {
-            if (binding.requiresResources(sdk)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private boolean hasMethodBindings() {
         for (ViewBinding bindings : viewBindings) {
             if (!bindings.getMethodBindings().isEmpty()) {
@@ -668,7 +644,6 @@ final class BindingSet {
         private final List<ViewBinding.Builder> viewIdMap = new ArrayList<>();
         private final ImmutableList.Builder<FieldCollectionViewBinding> collectionBindings =
                 ImmutableList.builder();
-        private final ImmutableList.Builder<ResourceBinding> resourceBindings = ImmutableList.builder();
 
         void setContentLayoutId(@LayoutRes int layoutId) {
             this.layoutId = layoutId;
@@ -718,8 +693,7 @@ final class BindingSet {
                 viewBindings.add(builder.build());
             }
             return new BindingSet(targetTypeName, bindingClassName, isFinal, isActivity,
-                    viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
-                    parentBinding, layoutId);
+                    viewBindings.build(), collectionBindings.build(), parentBinding, layoutId);
         }
     }
 }
