@@ -57,15 +57,22 @@ __Tip：如果您的项目已经用了ButterKnife,切换至NewButterKnife原来�
 
 Download
 --------
-
+* Step 1. 在项目根build.gradle文件中增加maven仓库依赖
 ```groovy
-dependencies {
-  compile 'com.yph:newbutterknife-api:1.0.3'
-  compile 'com.yph:newbutterknife-annotation:1.0.3'
-  annotationProcessor 'com.yph:newbutterknife-compiler:1.0.3'
+allprojects {
+    repositories {
+        ...
+        maven { url "https://dl.bintray.com/yph/maven" }
+    }
 }
 ```
-
+* Step 2. 在项目module的build.gradle添加依赖
+```groovy
+dependencies {
+  compile 'com.yph:newbutterknife:1.0.4'
+  annotationProcessor 'com.yph:newbutterknife-compiler:1.0.4'
+}
+```
 混淆配置
 --------
 ```
