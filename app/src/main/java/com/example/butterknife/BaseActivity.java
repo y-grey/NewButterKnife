@@ -1,6 +1,7 @@
 package com.example.butterknife;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
@@ -14,6 +15,7 @@ import butterknife.ButterKnife;
  */
 
 public abstract class BaseActivity extends FragmentActivity {
+    @Nullable //允许此控件可null，ButterKnife则不再抛出空异常
     @BindView(R.id.btn) TextView btn;//如果多个子Activity有此控件，可放在BaseActivity统一初始化
     @Override
     protected void onCreate(Bundle savedInstanceState) {
