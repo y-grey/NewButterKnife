@@ -116,8 +116,10 @@ final class BindingSet {
                 .addModifiers(PUBLIC)
                 .addParameter(targetTypeName, "target",FINAL)
                 .addParameter(VIEW, "source");
-        builder.addStatement("this.target = target");
-        builder.addCode("\n");
+        if (hasTargetField()) {
+            builder.addStatement("this.target = target");
+            builder.addCode("\n");
+        }
         builder.addStatement("this.source = source");
         builder.addCode("\n");
         if (hasViewBindings()) {
